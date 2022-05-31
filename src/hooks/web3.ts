@@ -1,7 +1,11 @@
 import { useState, useEffect } from "react";
 import { useWeb3React } from "@web3-react/core";
-
+import { ERC20__factory } from "../ethereum/typechain/factories/ERC20__factory";
+// import { Lottery } from "../ethereum/typechain/Lottery";
+// import { LotteryFactory } from "../ethereum/typechain/LotteryFactory";
 import { injected } from "../ethereum/connector";
+import { CONTRACT_ABI } from "../ethereum/const";
+import { ethers } from "ethers";
 
 export function useEagerConnect() {
   const { activate, active } = useWeb3React();
@@ -85,4 +89,12 @@ export const switchNetworkMetamask = async (chainIdHex: string) => {
       console.log("Switch network error", error);
     }
   }
+};
+
+export const useERC20 = async (address: string) => {
+  const provider = new ethers.providers.BaseProvider(
+    "https://ropsten.infura.io/v3/2ee8969fa00742efb10051fc923552e1"
+  );
+  const erc20 = ERC20__factory.connect(address, provider);
+  return erc20;
 };

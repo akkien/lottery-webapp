@@ -7,6 +7,7 @@ import {
   NoEthereumProviderError,
   UserRejectedRequestError as UserRejectedRequestErrorInjected,
 } from "@web3-react/injected-connector";
+import Dashboard from "./components/dashboard/Dashboard";
 
 import "./App.css";
 
@@ -40,7 +41,7 @@ function App() {
           </Alert>
         </div>
       ) : (
-        <></>
+        <Dashboard />
       )}
     </div>
   );
