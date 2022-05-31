@@ -1,24 +1,47 @@
-import React from 'react';
-import logo from './logo.svg';
-import './App.css';
+import React from "react";
+import ConnectButton from "./components/wallet/ConnectButton";
+import Alert from "@mui/material/Alert";
+import { useWeb3React, UnsupportedChainIdError } from "@web3-react/core";
+import { AbstractConnector } from "@web3-react/abstract-connector";
+import {
+  NoEthereumProviderError,
+  UserRejectedRequestError as UserRejectedRequestErrorInjected,
+} from "@web3-react/injected-connector";
+
+import "./App.css";
+
+function getErrorMessage(error: Error) {
+  if (error instanceof NoEthereumProviderError) {
+    return "No Ethereum browser extension detected, install MetaMask on desktop or visit from a dApp browser on mobile.";
+  } else if (error instanceof UnsupportedChainIdError) {
+    return "You're connected to an unsupported network (Ropsten).";
+  } else if (error instanceof UserRejectedRequestErrorInjected) {
+    return "Please authorize this website to access your Ethereum account.";
+  } else {
+    console.error(error);
+    return "An unknown error occurred. Check the console for more details.";
+  }
+}
 
 function App() {
+  const { chainId, account, error } = useWeb3React();
+
   return (
     <div className="App">
-      <header className="App-header">
-        <img src={logo} className="App-logo" alt="logo" />
-        <p>
-          Edit <code>src/App.tsx</code> and save to reload.
-        </p>
-        <a
-          className="App-link"
-          href="https://reactjs.org"
-          target="_blank"
-          rel="noopener noreferrer"
-        >
-          Learn React
-        </a>
-      </header>
+      <div className="app-header">
+        <span></span>
+        <ConnectButton />
+      </div>
+      {!!error && <Alert severity="warning">{getErrorMessage(error)}</Alert>}
+      {!account ? (
+        <div>
+          <Alert severity="warning">
+            Please connect your wallet to use this application
+          </Alert>
+        </div>
+      ) : (
+        <></>
+      )}
     </div>
   );
 }
