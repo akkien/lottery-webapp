@@ -170,6 +170,12 @@ function Dashboard() {
         onChange={(e) => {
           setLotteryAddrInput(e.target.value);
         }}
+        onKeyDown={(e) => {
+          if (e.code === "Enter") {
+            e.preventDefault();
+            handleFindLottery();
+          }
+        }}
       />
 
       <Grid
