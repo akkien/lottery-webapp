@@ -15,6 +15,7 @@ import {
   switchNetworkMetamask,
 } from "../../hooks/web3";
 import { formatEther } from "@ethersproject/units";
+import { trimAccount } from "../../ethereum/helper";
 
 function ConnectButton() {
   const context = useWeb3React<Web3Provider>();
@@ -121,13 +122,6 @@ function ConnectButton() {
       Connect Wallet
     </Button>
   );
-}
-
-function trimAccount(address: string) {
-  return `${address.slice(0, 6)}...${address.slice(
-    address.length - 4,
-    address.length
-  )}`;
 }
 
 export default ConnectButton;

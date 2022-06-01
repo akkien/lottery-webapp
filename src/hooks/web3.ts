@@ -107,6 +107,13 @@ export const useLottery = (address: string) => {
   return contract;
 };
 
+export const getLottery = (address: string) => {
+  const provider = getProvider();
+  const signer = provider.getSigner();
+  const contract = Lottery__factory.connect(address, signer);
+  return contract;
+};
+
 export const useLotteryFactory = () => {
   const provider = useProvider();
   const signer = provider.getSigner();
@@ -115,6 +122,12 @@ export const useLotteryFactory = () => {
     signer
   );
   return contract;
+};
+
+export const getProvider = () => {
+  const { ethereum } = window as any;
+  const provider = new ethers.providers.Web3Provider(ethereum);
+  return provider;
 };
 
 export const useProvider = () => {

@@ -14,6 +14,7 @@ import { BigNumber } from "@ethersproject/bignumber";
 import React from "react";
 import { ContractTransaction } from "@ethersproject/contracts";
 import { ethers } from "ethers";
+import NotiContent from "../notify-content/NotifyContent";
 
 const Alert = forwardRef<HTMLDivElement, AlertProps>(function Alert(
   props,
@@ -39,9 +40,14 @@ function Lottery(props: LotteryProps) {
   const [ended, setEnded] = useState(false);
   const [isPlayer, setIsPlayer] = useState(false);
   const [userBet, setUserBet] = useState<BigNumber>(BigNumber.from(-1));
+  const [lotteryBalance, setLotteryBalance] = useState<BigNumber>(
+    BigNumber.from(0)
+  );
 
   // Erc20 Info
+  const [symbol, setSymbol] = useState("");
   const [allowance, setAllowance] = useState<BigNumber>(BigNumber.from(0));
+  const [userBalance, setUserBalance] = useState<BigNumber>(BigNumber.from(0));
 
   // Input
   const [betNumber, setBetNumber] = useState<number | "">("");
@@ -58,6 +64,7 @@ function Lottery(props: LotteryProps) {
       lottery.winNumber(),
       lottery.ended(),
       lottery.owner(),
+      lottery.getBalance(),
     ])
       .then((info) => {
         setPaymentToken(info[0]);
@@ -65,6 +72,7 @@ function Lottery(props: LotteryProps) {
         setWinNumber(info[2].toNumber());
         setEnded(info[3]);
         setOwner(info[4]);
+        setLotteryBalance(info[5]);
       })
       .catch((error) => {
         console.log("Get Lottery Info Fail:", error);
@@ -72,7 +80,7 @@ function Lottery(props: LotteryProps) {
   };
   useEffect(() => {
     getLotteryInfo();
-  }, []);
+  }, [lotteryAddress]);
 
   const getUserBet = async () => {
     if (account) {
@@ -85,13 +93,24 @@ function Lottery(props: LotteryProps) {
   };
   useEffect(() => {
     getUserBet();
-  }, [account]);
+  }, [account, lotteryAddress]);
 
   const erc20 = useERC20(paymentToken);
   const getAllowance = async () => {
     if (account) {
-      const allowance = await erc20.allowance(account, lotteryAddress);
-      setAllowance(allowance);
+      Promise.all([
+        erc20.allowance(account, lotteryAddress),
+        erc20.balanceOf(account),
+        erc20.symbol(),
+      ])
+        .then((info) => {
+          setAllowance(info[0]);
+          setUserBalance(info[1]);
+          setSymbol(info[2]);
+        })
+        .catch((error) => {
+          console.log("Get Token Info Fail:", error);
+        });
     }
   };
   useEffect(() => {
@@ -152,7 +171,8 @@ function Lottery(props: LotteryProps) {
       />
       <InfoItem label="Is Ended" value={ended ? "Yes" : "No"} />
       <InfoItem label="Win Number" value={winNumber} />
-      <InfoItem label="Payment Token" value={paymentToken} />
+      <br />
+      <InfoItem label="Payment Token" value={`${paymentToken} (${symbol})`} />
       <InfoItem
         label="Bet Price"
         value={price ? parseFloat(formatEther(price)).toPrecision(4) : price}
@@ -160,6 +180,23 @@ function Lottery(props: LotteryProps) {
       {isPlayer && (
         <InfoItem label="Your Bet Number" value={userBet.toNumber()} />
       )}
+      <br />
+      <InfoItem
+        label="Lottery Balance"
+        value={
+          lotteryBalance
+            ? parseFloat(formatEther(lotteryBalance)).toPrecision(4)
+            : lotteryBalance
+        }
+      />
+      <InfoItem
+        label="Your Balance"
+        value={
+          userBalance
+            ? parseFloat(formatEther(userBalance)).toPrecision(4)
+            : userBalance
+        }
+      />
 
       {account === owner && !ended && (
         <Grid container justifyContent="center">
@@ -241,21 +278,6 @@ function InfoItem(props: InfoItemProps) {
         {value}
       </Grid>
     </Grid>
-  );
-}
-
-function NotiContent(message: string, hash: string) {
-  return (
-    <span>
-      {message}{" "}
-      <a
-        href={`https://ropsten.etherscan.io/tx/${hash}`}
-        target="_blank"
-        rel="noreferrer"
-      >
-        {hash.substr(0, 10)}
-      </a>
-    </span>
   );
 }
 
