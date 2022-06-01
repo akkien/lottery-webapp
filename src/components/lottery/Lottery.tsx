@@ -55,6 +55,10 @@ function Lottery(props: LotteryProps) {
   const [notiMessage, setNotiMessage] = useState<React.ReactNode>(null);
   const [notiOpen, setNotiOpen] = useState(false);
 
+  const [sendingApprove, setSendingApprove] = useState(false);
+  const [sendingBet, setSendingBet] = useState(false);
+  const [sendingStop, setSendingStop] = useState(false);
+
   const lottery = useLottery(lotteryAddress);
 
   const getLotteryInfo = () => {
@@ -119,20 +123,41 @@ function Lottery(props: LotteryProps) {
 
   const approveToken = async () => {
     const approveTx = await erc20.approve(lotteryAddress, price);
-    await sendTransaction(approveTx);
-    getAllowance();
+
+    setSendingApprove(true);
+    try {
+      await sendTransaction(approveTx);
+      getAllowance();
+    } catch (error) {
+    } finally {
+      setSendingApprove(false);
+    }
   };
 
   const handleBet = async () => {
     const approveTx = await lottery.bet(ethers.BigNumber.from(betNumber));
-    await sendTransaction(approveTx);
-    getUserBet();
+
+    setSendingBet(true);
+    try {
+      await sendTransaction(approveTx);
+      getUserBet();
+    } catch (error) {
+    } finally {
+      setSendingBet(false);
+    }
   };
 
   const handleStop = async () => {
     const stopTx = await lottery.adminStop();
-    await sendTransaction(stopTx);
-    getLotteryInfo();
+
+    setSendingStop(true);
+    try {
+      await sendTransaction(stopTx);
+      getLotteryInfo();
+    } catch (error) {
+    } finally {
+      setSendingStop(false);
+    }
   };
 
   const handleCloseNoti = (
@@ -175,7 +200,7 @@ function Lottery(props: LotteryProps) {
       <InfoItem label="Payment Token" value={`${paymentToken} (${symbol})`} />
       <InfoItem
         label="Bet Price"
-        value={price ? parseFloat(formatEther(price)).toPrecision(4) : price}
+        value={`${price ? parseFloat(formatEther(price)) : price} (${symbol})`}
       />
       {isPlayer && (
         <InfoItem label="Your Bet Number" value={userBet.toNumber()} />
@@ -183,25 +208,23 @@ function Lottery(props: LotteryProps) {
       <br />
       <InfoItem
         label="Lottery Balance"
-        value={
+        value={`${
           lotteryBalance
-            ? parseFloat(formatEther(lotteryBalance)).toPrecision(4)
+            ? parseFloat(formatEther(lotteryBalance))
             : lotteryBalance
-        }
+        } (${symbol})`}
       />
       <InfoItem
         label="Your Balance"
-        value={
-          userBalance
-            ? parseFloat(formatEther(userBalance)).toPrecision(4)
-            : userBalance
-        }
+        value={`${
+          userBalance ? parseFloat(formatEther(userBalance)) : userBalance
+        } (${symbol})`}
       />
 
       {account === owner && !ended && (
         <Grid container justifyContent="center">
           <Button variant="contained" onClick={handleStop}>
-            Stop Lottery
+            {sendingStop ? "Stopping Lottery..." : "Stop Lottery"}
           </Button>
         </Grid>
       )}
@@ -214,7 +237,17 @@ function Lottery(props: LotteryProps) {
               style={{ marginBottom: ".5rem" }}
             >
               <Button variant="contained" onClick={approveToken}>
-                Allow lottery to use token
+                {sendingApprove ? (
+                  "Approving..."
+                ) : (
+                  <div>
+                    {`Approve lottery to use ${
+                      price ? parseFloat(formatEther(price)) : price
+                    } token`}
+                    <br />
+                    <small>This action is required so that you can bet</small>
+                  </div>
+                )}
               </Button>
             </Grid>
           )}
@@ -225,6 +258,7 @@ function Lottery(props: LotteryProps) {
                 placeholder="Enter Number"
                 type="number"
                 value={betNumber}
+                disabled={allowance.lt(price)}
                 onChange={(e) => {
                   if (e.target.value === "") {
                     setBetNumber(e.target.value);
@@ -238,7 +272,7 @@ function Lottery(props: LotteryProps) {
                 onClick={handleBet}
                 disabled={allowance.lt(price)}
               >
-                Bet
+                {sendingBet ? "Betting..." : "Bet"}
               </Button>
             </Grid>
           )}

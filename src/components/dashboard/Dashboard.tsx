@@ -37,6 +37,8 @@ function Dashboard() {
   const [notiMessage, setNotiMessage] = useState<React.ReactNode>(null);
   const [notiOpen, setNotiOpen] = useState(false);
 
+  const [sending, setSending] = useState(false);
+
   const handleClickAddress = (
     event: React.MouseEvent<HTMLDivElement, MouseEvent>,
     address: string
@@ -71,10 +73,17 @@ function Dashboard() {
   const handleCreateLottery = async () => {
     const createTx = await factory.createLottery(
       paymentToken,
-      ethers.BigNumber.from(price)
+      ethers.utils.parseEther(price.toString())
     );
-    await sendTransaction(createTx);
-    fetchLottery();
+
+    setSending(true);
+    try {
+      await sendTransaction(createTx);
+      fetchLottery();
+    } catch (error) {
+    } finally {
+      setSending(false);
+    }
   };
 
   const handleFindLottery = async () => {
@@ -116,25 +125,7 @@ function Dashboard() {
 
   return (
     <div>
-      <OutlinedInput
-        id="standard-search"
-        placeholder="Enter Lottery Address"
-        type="search"
-        fullWidth
-        endAdornment={
-          <InputAdornment position="end">
-            <IconButton edge="end" onClick={handleFindLottery}>
-              <SearchIcon />
-            </IconButton>
-          </InputAdornment>
-        }
-        value={lotteryAddrInput}
-        onChange={(e) => {
-          setLotteryAddrInput(e.target.value);
-        }}
-      />
-
-      <Grid container justifyContent="center" style={{ marginTop: "1rem" }}>
+      <Grid container justifyContent="center" style={{ marginBottom: "3rem" }}>
         <Grid item container justifyContent="center" direction="column" xs={3}>
           <OutlinedInput
             placeholder="Payment ERC20 Token Address"
@@ -158,11 +149,35 @@ function Dashboard() {
             }}
           />
           <Button variant="contained" onClick={handleCreateLottery}>
-            Create Lottery
+            {sending ? "Creating..." : "Create Lottery"}
           </Button>
         </Grid>
       </Grid>
-      <Grid container direction="row" style={{ marginTop: "2rem" }} spacing={2}>
+
+      <OutlinedInput
+        id="standard-search"
+        placeholder="Enter Existing Lottery Address"
+        type="search"
+        fullWidth
+        endAdornment={
+          <InputAdornment position="end">
+            <IconButton edge="end" onClick={handleFindLottery}>
+              <SearchIcon />
+            </IconButton>
+          </InputAdornment>
+        }
+        value={lotteryAddrInput}
+        onChange={(e) => {
+          setLotteryAddrInput(e.target.value);
+        }}
+      />
+
+      <Grid
+        container
+        direction="row"
+        style={{ marginTop: ".5rem" }}
+        spacing={2}
+      >
         <Grid item xs={6}>
           <Box
             sx={{
