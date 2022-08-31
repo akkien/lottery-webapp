@@ -1,6 +1,6 @@
 export const SUPPORTED_CHAINS_IDS = {
   // MAINNET: 1,
-  ROPSTEN: 3,
+  // ROPSTEN: 3,
   // RINKEBY: 4,
   // GOERLI: 5,
   // KOVAN: 42,

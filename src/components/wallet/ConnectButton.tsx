@@ -83,7 +83,7 @@ function ConnectButton() {
         <Alert severity="success" color="info" icon={false}>
           {`${trimAccount(account)} (${
             !!balance ? parseFloat(formatEther(balance)).toPrecision(4) : ""
-          } ETH)`}
+          } ASA)`}
         </Alert>
         <Button
           variant="contained"
@@ -102,7 +102,7 @@ function ConnectButton() {
       <Button
         variant="contained"
         onClick={() => {
-          switchNetworkMetamask("0x3");
+          switchNetworkMetamask("0x2b6b");
         }}
       >
         Switch Network

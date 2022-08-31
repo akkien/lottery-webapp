@@ -5,43 +5,38 @@
 import { Contract, Signer, utils } from "ethers";
 import { Provider } from "@ethersproject/providers";
 import type {
-  ILotteryFactory,
-  ILotteryFactoryInterface,
-} from "../ILotteryFactory";
+  ERC2771Recipient,
+  ERC2771RecipientInterface,
+} from "../ERC2771Recipient";
 
 const _abi = [
   {
-    inputs: [
+    inputs: [],
+    name: "getTrustedForwarder",
+    outputs: [
       {
         internalType: "address",
-        name: "",
+        name: "forwarder",
         type: "address",
       },
-      {
-        internalType: "uint256",
-        name: "",
-        type: "uint256",
-      },
     ],
-    name: "createLottery",
-    outputs: [],
-    stateMutability: "nonpayable",
+    stateMutability: "view",
     type: "function",
   },
   {
     inputs: [
       {
         internalType: "address",
-        name: "",
+        name: "forwarder",
         type: "address",
       },
     ],
-    name: "getMyLotteries",
+    name: "isTrustedForwarder",
     outputs: [
       {
-        internalType: "address[]",
+        internalType: "bool",
         name: "",
-        type: "address[]",
+        type: "bool",
       },
     ],
     stateMutability: "view",
@@ -49,15 +44,15 @@ const _abi = [
   },
 ];
 
-export class ILotteryFactory__factory {
+export class ERC2771Recipient__factory {
   static readonly abi = _abi;
-  static createInterface(): ILotteryFactoryInterface {
-    return new utils.Interface(_abi) as ILotteryFactoryInterface;
+  static createInterface(): ERC2771RecipientInterface {
+    return new utils.Interface(_abi) as ERC2771RecipientInterface;
   }
   static connect(
     address: string,
     signerOrProvider: Signer | Provider
-  ): ILotteryFactory {
-    return new Contract(address, _abi, signerOrProvider) as ILotteryFactory;
+  ): ERC2771Recipient {
+    return new Contract(address, _abi, signerOrProvider) as ERC2771Recipient;
   }
 }

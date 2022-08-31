@@ -19,34 +19,43 @@ import { Listener, Provider } from "@ethersproject/providers";
 import { FunctionFragment, EventFragment, Result } from "@ethersproject/abi";
 import type { TypedEventFilter, TypedEvent, TypedListener } from "./common";
 
-interface ILotteryFactoryInterface extends ethers.utils.Interface {
+interface IERC1155ReceiverInterface extends ethers.utils.Interface {
   functions: {
-    "createLottery(address,uint256)": FunctionFragment;
-    "getMyLotteries(address)": FunctionFragment;
+    "onERC1155BatchReceived(address,address,uint256[],uint256[],bytes)": FunctionFragment;
+    "onERC1155Received(address,address,uint256,uint256,bytes)": FunctionFragment;
+    "supportsInterface(bytes4)": FunctionFragment;
   };
 
   encodeFunctionData(
-    functionFragment: "createLottery",
-    values: [string, BigNumberish]
+    functionFragment: "onERC1155BatchReceived",
+    values: [string, string, BigNumberish[], BigNumberish[], BytesLike]
   ): string;
   encodeFunctionData(
-    functionFragment: "getMyLotteries",
-    values: [string]
+    functionFragment: "onERC1155Received",
+    values: [string, string, BigNumberish, BigNumberish, BytesLike]
+  ): string;
+  encodeFunctionData(
+    functionFragment: "supportsInterface",
+    values: [BytesLike]
   ): string;
 
   decodeFunctionResult(
-    functionFragment: "createLottery",
+    functionFragment: "onERC1155BatchReceived",
     data: BytesLike
   ): Result;
   decodeFunctionResult(
-    functionFragment: "getMyLotteries",
+    functionFragment: "onERC1155Received",
+    data: BytesLike
+  ): Result;
+  decodeFunctionResult(
+    functionFragment: "supportsInterface",
     data: BytesLike
   ): Result;
 
   events: {};
 }
 
-export class ILotteryFactory extends BaseContract {
+export class IERC1155Receiver extends BaseContract {
   connect(signerOrProvider: Signer | Provider | string): this;
   attach(addressOrName: string): this;
   deployed(): Promise<this>;
@@ -87,60 +96,129 @@ export class ILotteryFactory extends BaseContract {
     toBlock?: string | number | undefined
   ): Promise<Array<TypedEvent<EventArgsArray & EventArgsObject>>>;
 
-  interface: ILotteryFactoryInterface;
+  interface: IERC1155ReceiverInterface;
 
   functions: {
-    createLottery(
-      arg0: string,
-      arg1: BigNumberish,
+    onERC1155BatchReceived(
+      operator: string,
+      from: string,
+      ids: BigNumberish[],
+      values: BigNumberish[],
+      data: BytesLike,
       overrides?: Overrides & { from?: string | Promise<string> }
     ): Promise<ContractTransaction>;
 
-    getMyLotteries(
-      arg0: string,
+    onERC1155Received(
+      operator: string,
+      from: string,
+      id: BigNumberish,
+      value: BigNumberish,
+      data: BytesLike,
+      overrides?: Overrides & { from?: string | Promise<string> }
+    ): Promise<ContractTransaction>;
+
+    supportsInterface(
+      interfaceId: BytesLike,
       overrides?: CallOverrides
-    ): Promise<[string[]]>;
+    ): Promise<[boolean]>;
   };
 
-  createLottery(
-    arg0: string,
-    arg1: BigNumberish,
+  onERC1155BatchReceived(
+    operator: string,
+    from: string,
+    ids: BigNumberish[],
+    values: BigNumberish[],
+    data: BytesLike,
     overrides?: Overrides & { from?: string | Promise<string> }
   ): Promise<ContractTransaction>;
 
-  getMyLotteries(arg0: string, overrides?: CallOverrides): Promise<string[]>;
+  onERC1155Received(
+    operator: string,
+    from: string,
+    id: BigNumberish,
+    value: BigNumberish,
+    data: BytesLike,
+    overrides?: Overrides & { from?: string | Promise<string> }
+  ): Promise<ContractTransaction>;
+
+  supportsInterface(
+    interfaceId: BytesLike,
+    overrides?: CallOverrides
+  ): Promise<boolean>;
 
   callStatic: {
-    createLottery(
-      arg0: string,
-      arg1: BigNumberish,
+    onERC1155BatchReceived(
+      operator: string,
+      from: string,
+      ids: BigNumberish[],
+      values: BigNumberish[],
+      data: BytesLike,
       overrides?: CallOverrides
-    ): Promise<void>;
+    ): Promise<string>;
 
-    getMyLotteries(arg0: string, overrides?: CallOverrides): Promise<string[]>;
+    onERC1155Received(
+      operator: string,
+      from: string,
+      id: BigNumberish,
+      value: BigNumberish,
+      data: BytesLike,
+      overrides?: CallOverrides
+    ): Promise<string>;
+
+    supportsInterface(
+      interfaceId: BytesLike,
+      overrides?: CallOverrides
+    ): Promise<boolean>;
   };
 
   filters: {};
 
   estimateGas: {
-    createLottery(
-      arg0: string,
-      arg1: BigNumberish,
+    onERC1155BatchReceived(
+      operator: string,
+      from: string,
+      ids: BigNumberish[],
+      values: BigNumberish[],
+      data: BytesLike,
       overrides?: Overrides & { from?: string | Promise<string> }
     ): Promise<BigNumber>;
 
-    getMyLotteries(arg0: string, overrides?: CallOverrides): Promise<BigNumber>;
+    onERC1155Received(
+      operator: string,
+      from: string,
+      id: BigNumberish,
+      value: BigNumberish,
+      data: BytesLike,
+      overrides?: Overrides & { from?: string | Promise<string> }
+    ): Promise<BigNumber>;
+
+    supportsInterface(
+      interfaceId: BytesLike,
+      overrides?: CallOverrides
+    ): Promise<BigNumber>;
   };
 
   populateTransaction: {
-    createLottery(
-      arg0: string,
-      arg1: BigNumberish,
+    onERC1155BatchReceived(
+      operator: string,
+      from: string,
+      ids: BigNumberish[],
+      values: BigNumberish[],
+      data: BytesLike,
       overrides?: Overrides & { from?: string | Promise<string> }
     ): Promise<PopulatedTransaction>;
 
-    getMyLotteries(
-      arg0: string,
+    onERC1155Received(
+      operator: string,
+      from: string,
+      id: BigNumberish,
+      value: BigNumberish,
+      data: BytesLike,
+      overrides?: Overrides & { from?: string | Promise<string> }
+    ): Promise<PopulatedTransaction>;
+
+    supportsInterface(
+      interfaceId: BytesLike,
       overrides?: CallOverrides
     ): Promise<PopulatedTransaction>;
   };

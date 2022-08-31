@@ -3,7 +3,7 @@ export default function NotiContent(message: string, hash: string) {
     <span>
       {message}{" "}
       <a
-        href={`https://ropsten.etherscan.io/tx/${hash}`}
+        href={`https://explorer.astranaut.dev/tx/${hash}`}
         target="_blank"
         rel="noreferrer"
       >

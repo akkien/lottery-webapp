@@ -16,48 +16,64 @@ import NotiContent from "../notify-content/NotifyContent";
 import { ContractTransaction } from "@ethersproject/contracts";
 import Snackbar from "@mui/material/Snackbar";
 import { ethers } from "ethers";
+import ChevronRightIcon from "@mui/icons-material/ChevronRight";
 
 import { useWeb3React } from "@web3-react/core";
-import { useLotteryFactory, getLottery } from "../../hooks/web3";
+import { getFunds } from "../../hooks/web3";
 import { trimAccount } from "../../ethereum/helper";
 
-import Lottery from "../lottery/Lottery";
+const abiCoder = new ethers.utils.AbiCoder();
+
+const getHash = (str: string, num: number) => {
+  return ethers.utils.keccak256(
+    abiCoder.encode(["string", "uint"], [str, num])
+  );
+};
 
 function Dashboard() {
   const { account } = useWeb3React();
 
-  const [lotteries, setLotteries] = useState<string[]>([]);
-  const [pickedLottery, setPickedLottery] = useState("");
+  const fundsContract = getFunds();
 
   // Input
-  const [lotteryAddrInput, setLotteryAddrInput] = useState("");
-  const [paymentToken, setPaymentToken] = useState<string>("");
-  const [price, setPrice] = useState<number | "">("");
+  const [isRegistered, setIsRegistered] = useState(false);
+  const [topUpSecret, setTopUpSecret] = useState("");
+  const [topUpNumber, setTopUpNumber] = useState<number | string>("");
+  const [claimSecret, setClaimSecret] = useState("");
+  const [claimNumber, setClaimNumber] = useState<number | string>("");
 
   const [notiMessage, setNotiMessage] = useState<React.ReactNode>(null);
   const [notiOpen, setNotiOpen] = useState(false);
 
   const [sending, setSending] = useState(false);
 
-  const handleClickAddress = (
-    event: React.MouseEvent<HTMLDivElement, MouseEvent>,
-    address: string
-  ) => {
-    setPickedLottery(address);
-  };
+  useEffect(() => {
+    const func = async () => {
+      if (claimSecret && claimNumber !== "") {
+        const hash = getHash(claimSecret, Number(claimNumber));
+        const claimer = await fundsContract.claimers(hash);
 
-  const factory = useLotteryFactory();
+        setIsRegistered(claimer !== ethers.constants.AddressZero);
+      }
+    };
+    func();
+    console.log("RUN");
+  }, [claimNumber, claimSecret]);
 
-  const fetchLottery = async () => {
-    if (account) {
-      const lotteries = await factory.getMyLotteries(account);
-      setLotteries(lotteries);
+  const handleClickTopUp = async () => {
+    try {
+      const amount = await fundsContract.amount();
+
+      if (topUpSecret && topUpNumber !== "") {
+        const hash = getHash(topUpSecret, Number(topUpNumber));
+        const tx = await fundsContract.topUp([hash], { value: amount });
+        await sendTransaction(tx);
+      }
+    } catch (error) {
+    } finally {
+      setSending(false);
     }
   };
-
-  useEffect(() => {
-    fetchLottery();
-  }, [account]);
 
   const handleCloseNoti = (
     event?: React.SyntheticEvent | Event,
@@ -68,40 +84,6 @@ function Dashboard() {
     }
 
     setNotiOpen(false);
-  };
-
-  const handleCreateLottery = async () => {
-    const createTx = await factory.createLottery(
-      paymentToken,
-      ethers.utils.parseEther(price.toString())
-    );
-
-    setSending(true);
-    try {
-      await sendTransaction(createTx);
-      fetchLottery();
-    } catch (error) {
-    } finally {
-      setSending(false);
-    }
-  };
-
-  const handleFindLottery = async () => {
-    if (!ethers.utils.isAddress(lotteryAddrInput)) {
-      setNotiMessage(<span>Invalid Address</span>);
-      setNotiOpen(true);
-      return;
-    }
-
-    const lottery = getLottery(lotteryAddrInput);
-
-    try {
-      await lottery.paymentToken();
-      setPickedLottery(lotteryAddrInput);
-    } catch (error) {
-      setNotiMessage(<span>Invalid Address</span>);
-      setNotiOpen(true);
-    }
   };
 
   const sendTransaction = async (tx: ContractTransaction) => {
@@ -125,126 +107,91 @@ function Dashboard() {
 
   return (
     <div>
-      <Grid container justifyContent="center" style={{ marginBottom: "3rem" }}>
-        <Grid item container justifyContent="center" direction="column" xs={3}>
-          <OutlinedInput
-            placeholder="Payment ERC20 Token Address"
-            value={paymentToken}
-            onChange={(e) => {
-              setPaymentToken(e.target.value);
-            }}
-            style={{ marginBottom: 5 }}
-          />
-          <OutlinedInput
-            placeholder="Bet Price"
-            type="number"
-            value={price}
-            style={{ marginBottom: 5 }}
-            onChange={(e) => {
-              if (e.target.value === "") {
-                setPrice(e.target.value);
-              } else {
-                setPrice(Number(e.target.value));
-              }
-            }}
-          />
-          <Button variant="contained" onClick={handleCreateLottery}>
-            {sending ? "Creating..." : "Create Lottery"}
-          </Button>
+      <Grid container spacing={2}>
+        <Grid item xs={6}>
+          <Grid item xs={8}>
+            <OutlinedInput
+              placeholder="Secret"
+              value={topUpSecret}
+              fullWidth
+              onChange={(e) => {
+                setTopUpSecret(e.target.value);
+              }}
+              style={{ marginBottom: 5 }}
+            />
+          </Grid>
+          <Grid item xs={8}>
+            <OutlinedInput
+              placeholder="Random Number"
+              type="number"
+              value={topUpNumber}
+              fullWidth
+              style={{ marginBottom: 5 }}
+              onChange={(e) => {
+                if (e.target.value === "") {
+                  setTopUpNumber(e.target.value);
+                } else {
+                  setTopUpNumber(Number(e.target.value));
+                }
+              }}
+            />
+          </Grid>
+          <Grid item xs={12}>
+            <Button variant="contained" onClick={handleClickTopUp}>
+              {sending ? "Sending..." : "Top Up User"}
+            </Button>
+          </Grid>
+        </Grid>
+
+        {/* USER SECTION */}
+        <Grid item xs={6}>
+          <Grid item xs={8}>
+            <OutlinedInput
+              placeholder="Secret"
+              value={claimSecret}
+              fullWidth
+              onChange={(e) => {
+                setClaimSecret(e.target.value);
+              }}
+              style={{ marginBottom: 5 }}
+            />
+          </Grid>
+          <Grid item xs={8}>
+            <OutlinedInput
+              placeholder="Random Number"
+              type="number"
+              value={claimNumber}
+              fullWidth
+              style={{ marginBottom: 5 }}
+              onChange={(e) => {
+                if (e.target.value === "") {
+                  setClaimNumber(e.target.value);
+                } else {
+                  setClaimNumber(Number(e.target.value));
+                }
+              }}
+            />
+          </Grid>{" "}
+          <Grid
+            item
+            xs={8}
+            container
+            justifyContent={"space-between"}
+            alignItems="center"
+          >
+            <Button variant="contained" onClick={handleClickTopUp}>
+              {sending ? "Sending..." : "Register"}
+            </Button>
+
+            <ChevronRightIcon />
+
+            <Button variant="contained" onClick={handleClickTopUp}>
+              {sending ? "Sending..." : "Claim"}
+            </Button>
+          </Grid>
         </Grid>
       </Grid>
 
-      <OutlinedInput
-        id="standard-search"
-        placeholder="Enter Existing Lottery Address"
-        type="search"
-        fullWidth
-        endAdornment={
-          <InputAdornment position="end">
-            <IconButton edge="end" onClick={handleFindLottery}>
-              <SearchIcon />
-            </IconButton>
-          </InputAdornment>
-        }
-        value={lotteryAddrInput}
-        onChange={(e) => {
-          setLotteryAddrInput(e.target.value);
-        }}
-        onKeyDown={(e) => {
-          if (e.code === "Enter") {
-            e.preventDefault();
-            handleFindLottery();
-          }
-        }}
-      />
-
-      <Grid
-        container
-        direction="row"
-        style={{ marginTop: ".5rem" }}
-        spacing={2}
-      >
-        <Grid item xs={6}>
-          <Box
-            sx={{
-              width: "100%",
-              bgcolor: "#f5f5f5",
-              borderRadius: 3,
-              padding: "3px",
-            }}
-          >
-            <Typography
-              variant="h5"
-              gutterBottom
-              component="div"
-              textAlign="center"
-              style={{ margin: 0, paddingTop: ".5rem" }}
-            >
-              Your Own Lotteries
-            </Typography>
-            <List component="nav" aria-label="secondary mailbox folder">
-              {lotteries.map((item, idx) => (
-                <ListItemButton
-                  key={idx}
-                  selected={pickedLottery === item}
-                  onClick={(event) => handleClickAddress(event, item)}
-                >
-                  <ListItemText primary={item} />
-                </ListItemButton>
-              ))}
-            </List>
-          </Box>
-        </Grid>
-        <Grid item xs={6}>
-          <Box
-            sx={{
-              width: "100%",
-              bgcolor: "#f5f5f5",
-              borderRadius: 3,
-              padding: "8px 16px",
-            }}
-          >
-            {pickedLottery ? (
-              <>
-                <Typography
-                  variant="h5"
-                  gutterBottom
-                  component="div"
-                  textAlign="center"
-                  style={{ margin: 0, paddingTop: ".5rem" }}
-                >
-                  {`Lottery ${pickedLottery ? trimAccount(pickedLottery) : ""}`}
-                </Typography>
-                <Lottery lotteryAddress={pickedLottery} />
-              </>
-            ) : (
-              <Alert severity="warning">
-                Please select one of your lottery or enter a lottery address
-              </Alert>
-            )}
-          </Box>
-        </Grid>
-      </Grid>
       <Snackbar
         open={notiOpen}
         anchorOrigin={{ vertical: "top", horizontal: "right" }}

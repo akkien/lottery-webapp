@@ -1,12 +1,8 @@
 import { useState, useEffect } from "react";
 import { useWeb3React } from "@web3-react/core";
-import { ERC20__factory } from "../ethereum/typechain/factories/ERC20__factory";
-import { LotteryFactory__factory } from "../ethereum/typechain/factories/LotteryFactory__factory";
-import { Lottery__factory } from "../ethereum/typechain/factories/Lottery__factory";
-// import { Lottery } from "../ethereum/typechain/Lottery";
-// import { LotteryFactory } from "../ethereum/typechain/LotteryFactory";
+import { Funds__factory } from "../ethereum/typechain/factories/Funds__factory";
 import { injected } from "../ethereum/connector";
-import { CONTRACT_ABI, LOTTERY_FACTORY_ADDRESS } from "../ethereum/const";
+import { FUND_ADDRESS } from "../ethereum/const";
 import { ethers } from "ethers";
 
 export function useEagerConnect() {
@@ -93,45 +89,15 @@ export const switchNetworkMetamask = async (chainIdHex: string) => {
   }
 };
 
-export const useERC20 = (address: string) => {
-  const provider = useProvider();
-  const signer = provider.getSigner();
-  const erc20 = ERC20__factory.connect(address, signer);
-  return erc20;
-};
-
-export const useLottery = (address: string) => {
-  const provider = useProvider();
-  const signer = provider.getSigner();
-  const contract = Lottery__factory.connect(address, signer);
-  return contract;
-};
-
-export const getLottery = (address: string) => {
-  const provider = getProvider();
-  const signer = provider.getSigner();
-  const contract = Lottery__factory.connect(address, signer);
-  return contract;
-};
-
-export const useLotteryFactory = () => {
-  const provider = useProvider();
-  const signer = provider.getSigner();
-  const contract = LotteryFactory__factory.connect(
-    LOTTERY_FACTORY_ADDRESS,
-    signer
-  );
-  return contract;
-};
-
 export const getProvider = () => {
   const { ethereum } = window as any;
   const provider = new ethers.providers.Web3Provider(ethereum);
   return provider;
 };
 
-export const useProvider = () => {
-  const { ethereum } = window as any;
-  const provider = new ethers.providers.Web3Provider(ethereum);
-  return provider;
+export const getFunds = () => {
+  const provider = getProvider();
+  const signer = provider.getSigner();
+  const contract = Funds__factory.connect(FUND_ADDRESS, signer);
+  return contract;
 };
