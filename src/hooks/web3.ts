@@ -4,7 +4,6 @@ import { Funds__factory } from "../ethereum/typechain/factories/Funds__factory";
 import { injected } from "../ethereum/connector";
 import { FUND_ADDRESS, PAY_MASTER_ADDRESS } from "../ethereum/const";
 import { ethers } from "ethers";
-// const RelayProvider = require("./gsn-provider-built");
 
 export function useEagerConnect() {
   const { activate, active } = useWeb3React();
@@ -100,15 +99,6 @@ export const getGsnProvider = async () => {
   const { ethereum, gsnProvider } = window as any;
 
   return new ethers.providers.Web3Provider(gsnProvider);
-
-  // const provider = await RelayProvider.newProvider({
-  //   provider: ethereum,
-  //   config: {
-  //     loggerConfiguration: { logLevel: "debug" },
-  //     PAY_MASTER_ADDRESS,
-  //   },
-  // }).init();
-  // return provider;
 };
 
 export const getFunds = async () => {

@@ -32,8 +32,7 @@
     "build": "react-scripts build",
     "test": "react-scripts test",
     "eject": "react-scripts eject",
-    "build-provider": "browserify ./src/hooks/gsn-provider-src.js -o  ./src/hooks/gsn-provider-built.js",
-    "build-provider2": "browserify ./public/gsn-provider-src.js -o  ./public/gsn-provider-built.js"
+    "build-provider": "browserify ./public/gsn-provider-src.js -o  ./public/gsn-provider-built.js"
   },
   "eslintConfig": {
     "extends": [
