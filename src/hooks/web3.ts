@@ -90,15 +90,14 @@ export const switchNetworkMetamask = async (chainIdHex: string) => {
   }
 };
 
-// export const getProvider = () => {
-//   const { ethereum } = window as any;
-//   const provider = new ethers.providers.Web3Provider(ethereum);
-//   return provider;
-// };
+export const getProvider = () => {
+  const { ethereum } = window as any;
+  const provider = new ethers.providers.Web3Provider(ethereum);
+  return provider;
+};
 
-export const getProvider = async () => {
+export const getGsnProvider = async () => {
   const { ethereum, gsnProvider } = window as any;
-  console.log("gsnProvider", gsnProvider);
 
   return new ethers.providers.Web3Provider(gsnProvider);
 
@@ -114,6 +113,13 @@ export const getProvider = async () => {
 
 export const getFunds = async () => {
   const provider = await getProvider();
+  const signer = provider.getSigner();
+  const contract = Funds__factory.connect(FUND_ADDRESS, signer);
+  return contract;
+};
+
+export const getGsnFunds = async () => {
+  const provider = await getGsnProvider();
   const signer = provider.getSigner();
   const contract = Funds__factory.connect(FUND_ADDRESS, signer);
   return contract;

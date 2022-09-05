@@ -1,29 +1,22 @@
 const { RelayProvider } = require("@opengsn/provider");
 
-let gsnProvider;
-
-console.log("Loaded JS");
-
 async function initGsnProvider() {
   if (!window.ethereum) {
     throw new Error("provider not found");
   }
 
-  window.ethereum.on("accountsChanged", () => {
-    console.log("accountsChanged");
-    window.location.reload();
-  });
-  window.ethereum.on("chainChanged", () => {
-    console.log("chainChained");
-    window.location.reload();
-  });
-
   const PAY_MASTER_ADDRESS = "0x8A365103441883713d0780d8bb153dCfe2885DD7";
-  gsnProvider = await RelayProvider.newProvider({
+  window.gsnProvider = await RelayProvider.newProvider({
     provider: window.ethereum,
     config: {
+      preferredRelays: ["http://188.166.211.138:8080/gsn1"],
       loggerConfiguration: { logLevel: "debug" },
-      PAY_MASTER_ADDRESS,
+      paymasterAddress: PAY_MASTER_ADDRESS,
+      performDryRunViewRelayCall: false,
     },
   }).init();
 }
+
+window.app = {
+  initGsnProvider,
+};

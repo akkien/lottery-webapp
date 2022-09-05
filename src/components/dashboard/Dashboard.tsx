@@ -11,7 +11,7 @@ import { ethers } from "ethers";
 import ChevronRightIcon from "@mui/icons-material/ChevronRight";
 
 import { useWeb3React } from "@web3-react/core";
-import { getFunds } from "../../hooks/web3";
+import { getFunds, getGsnFunds } from "../../hooks/web3";
 
 const abiCoder = new ethers.utils.AbiCoder();
 
@@ -23,16 +23,6 @@ const getHash = (str: string, num: number) => {
 
 function Dashboard() {
   const { account } = useWeb3React();
-
-  // const provider = new ethers.providers.JsonRpcProvider(
-  //   "https://rpc.astranaut.dev/"
-  // );
-
-  // const key =
-  //   "769bdd7ada2daf6aab3e82f9d638e40399f5e38163efa31ad2a7ee14cdd99862";
-
-  // const wallet = new ethers.Wallet(key, provider);
-  // const fundsContract = Funds__factory.connect(FUND_ADDRESS, wallet);
 
   // Input
   const [isRegistered, setIsRegistered] = useState(false);
@@ -72,6 +62,7 @@ function Dashboard() {
 
       if (topUpSecret && topUpNumber !== "") {
         const hash = getHash(topUpSecret, Number(topUpNumber));
+
         const tx = await fundsContract.topUp([hash], { value: amount });
         await sendTransaction(tx);
       }
@@ -84,7 +75,7 @@ function Dashboard() {
   const handleClickRegister = async () => {
     try {
       if (claimSecret && claimNumber !== "") {
-        const fundsContract = await getFunds();
+        const fundsContract = await getGsnFunds();
 
         const hash = getHash(claimSecret, Number(claimNumber));
         const tx = await fundsContract.register(hash);
@@ -100,10 +91,11 @@ function Dashboard() {
   const handleClickClaim = async () => {
     try {
       if (claimSecret && claimNumber !== "") {
-        const fundsContract = await getFunds();
+        const fundsContract = await getGsnFunds();
 
         const tx = await fundsContract.claim(claimSecret, claimNumber);
         await sendTransaction(tx);
+        setIsClaimed(true);
       }
     } catch (error) {
     } finally {
