@@ -1,14 +1,6 @@
 import react, { useEffect, useState } from "react";
 
-import Box from "@mui/material/Box";
-import List from "@mui/material/List";
-import ListItemButton from "@mui/material/ListItemButton";
-import Typography from "@mui/material/Typography";
-import ListItemText from "@mui/material/ListItemText";
 import Button from "@mui/material/Button";
-import IconButton from "@mui/material/IconButton";
-import InputAdornment from "@mui/material/InputAdornment";
-import SearchIcon from "@mui/icons-material/Search";
 import OutlinedInput from "@mui/material/OutlinedInput";
 import Grid from "@mui/material/Grid";
 import Alert from "@mui/material/Alert";
@@ -20,7 +12,6 @@ import ChevronRightIcon from "@mui/icons-material/ChevronRight";
 
 import { useWeb3React } from "@web3-react/core";
 import { getFunds } from "../../hooks/web3";
-import { trimAccount } from "../../ethereum/helper";
 
 const abiCoder = new ethers.utils.AbiCoder();
 
@@ -33,10 +24,19 @@ const getHash = (str: string, num: number) => {
 function Dashboard() {
   const { account } = useWeb3React();
 
-  const fundsContract = getFunds();
+  // const provider = new ethers.providers.JsonRpcProvider(
+  //   "https://rpc.astranaut.dev/"
+  // );
+
+  // const key =
+  //   "769bdd7ada2daf6aab3e82f9d638e40399f5e38163efa31ad2a7ee14cdd99862";
+
+  // const wallet = new ethers.Wallet(key, provider);
+  // const fundsContract = Funds__factory.connect(FUND_ADDRESS, wallet);
 
   // Input
   const [isRegistered, setIsRegistered] = useState(false);
+  const [isClaimed, setIsClaimed] = useState(false);
   const [topUpSecret, setTopUpSecret] = useState("");
   const [topUpNumber, setTopUpNumber] = useState<number | string>("");
   const [claimSecret, setClaimSecret] = useState("");
@@ -50,23 +50,59 @@ function Dashboard() {
   useEffect(() => {
     const func = async () => {
       if (claimSecret && claimNumber !== "") {
+        const fundsContract = await getFunds();
+
         const hash = getHash(claimSecret, Number(claimNumber));
         const claimer = await fundsContract.claimers(hash);
 
         setIsRegistered(claimer !== ethers.constants.AddressZero);
+
+        const isClaimed = await fundsContract.isClaimed(hash);
+        setIsClaimed(isClaimed);
       }
     };
     func();
-    console.log("RUN");
   }, [claimNumber, claimSecret]);
 
   const handleClickTopUp = async () => {
     try {
+      const fundsContract = await getFunds();
+
       const amount = await fundsContract.amount();
 
       if (topUpSecret && topUpNumber !== "") {
         const hash = getHash(topUpSecret, Number(topUpNumber));
         const tx = await fundsContract.topUp([hash], { value: amount });
+        await sendTransaction(tx);
+      }
+    } catch (error) {
+    } finally {
+      setSending(false);
+    }
+  };
+
+  const handleClickRegister = async () => {
+    try {
+      if (claimSecret && claimNumber !== "") {
+        const fundsContract = await getFunds();
+
+        const hash = getHash(claimSecret, Number(claimNumber));
+        const tx = await fundsContract.register(hash);
+        await sendTransaction(tx);
+        setIsRegistered(true);
+      }
+    } catch (error) {
+    } finally {
+      setSending(false);
+    }
+  };
+
+  const handleClickClaim = async () => {
+    try {
+      if (claimSecret && claimNumber !== "") {
+        const fundsContract = await getFunds();
+
+        const tx = await fundsContract.claim(claimSecret, claimNumber);
         await sendTransaction(tx);
       }
     } catch (error) {
@@ -91,6 +127,8 @@ function Dashboard() {
 
     try {
       const receipt = await tx.wait();
+      console.log("receipt", receipt.transactionHash);
+
       if (receipt.status) {
         setNotiMessage(NotiContent("Transaction success", tx.hash));
       } else {
@@ -172,6 +210,11 @@ function Dashboard() {
               }}
             />
           </Grid>{" "}
+          <Grid item xs={8} style={{ marginBottom: 10 }}>
+            {isClaimed && (
+              <small style={{ color: "red" }}>Already Claimed</small>
+            )}
+          </Grid>
           <Grid
             item
             xs={8}
@@ -179,13 +222,21 @@ function Dashboard() {
             justifyContent={"space-between"}
             alignItems="center"
           >
-            <Button variant="contained" onClick={handleClickTopUp}>
+            <Button
+              variant="contained"
+              onClick={handleClickRegister}
+              disabled={isRegistered || isClaimed}
+            >
               {sending ? "Sending..." : "Register"}
             </Button>
 
             <ChevronRightIcon />
 
-            <Button variant="contained" onClick={handleClickTopUp}>
+            <Button
+              variant="contained"
+              onClick={handleClickClaim}
+              disabled={!isRegistered || isClaimed}
+            >
               {sending ? "Sending..." : "Claim"}
             </Button>
           </Grid>

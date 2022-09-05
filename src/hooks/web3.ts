@@ -2,8 +2,9 @@ import { useState, useEffect } from "react";
 import { useWeb3React } from "@web3-react/core";
 import { Funds__factory } from "../ethereum/typechain/factories/Funds__factory";
 import { injected } from "../ethereum/connector";
-import { FUND_ADDRESS } from "../ethereum/const";
+import { FUND_ADDRESS, PAY_MASTER_ADDRESS } from "../ethereum/const";
 import { ethers } from "ethers";
+// const RelayProvider = require("./gsn-provider-built");
 
 export function useEagerConnect() {
   const { activate, active } = useWeb3React();
@@ -89,14 +90,30 @@ export const switchNetworkMetamask = async (chainIdHex: string) => {
   }
 };
 
-export const getProvider = () => {
-  const { ethereum } = window as any;
-  const provider = new ethers.providers.Web3Provider(ethereum);
-  return provider;
+// export const getProvider = () => {
+//   const { ethereum } = window as any;
+//   const provider = new ethers.providers.Web3Provider(ethereum);
+//   return provider;
+// };
+
+export const getProvider = async () => {
+  const { ethereum, gsnProvider } = window as any;
+  console.log("gsnProvider", gsnProvider);
+
+  return new ethers.providers.Web3Provider(gsnProvider);
+
+  // const provider = await RelayProvider.newProvider({
+  //   provider: ethereum,
+  //   config: {
+  //     loggerConfiguration: { logLevel: "debug" },
+  //     PAY_MASTER_ADDRESS,
+  //   },
+  // }).init();
+  // return provider;
 };
 
-export const getFunds = () => {
-  const provider = getProvider();
+export const getFunds = async () => {
+  const provider = await getProvider();
   const signer = provider.getSigner();
   const contract = Funds__factory.connect(FUND_ADDRESS, signer);
   return contract;
