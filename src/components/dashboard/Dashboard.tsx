@@ -11,7 +11,8 @@ import { ethers } from "ethers";
 import ChevronRightIcon from "@mui/icons-material/ChevronRight";
 
 import { useWeb3React } from "@web3-react/core";
-import { getFunds, getGsnFunds } from "../../hooks/web3";
+import { getFunds, getGsnFunds, getGsnProvider } from "../../hooks/web3";
+import { getActualTxHash } from "../../ethereum/helper";
 
 const abiCoder = new ethers.utils.AbiCoder();
 
@@ -79,7 +80,8 @@ function Dashboard() {
 
         const hash = getHash(claimSecret, Number(claimNumber));
         const tx = await fundsContract.register(hash);
-        await sendTransaction(tx);
+
+        await sendGsnTransaction(tx);
         setIsRegistered(true);
       }
     } catch (error) {
@@ -94,7 +96,8 @@ function Dashboard() {
         const fundsContract = await getGsnFunds();
 
         const tx = await fundsContract.claim(claimSecret, claimNumber);
-        await sendTransaction(tx);
+
+        await sendGsnTransaction(tx);
         setIsClaimed(true);
       }
     } catch (error) {
@@ -119,12 +122,31 @@ function Dashboard() {
 
     try {
       const receipt = await tx.wait();
-      console.log("receipt", receipt.transactionHash);
 
       if (receipt.status) {
         setNotiMessage(NotiContent("Transaction success", tx.hash));
       } else {
         setNotiMessage(NotiContent("Transaction fail", tx.hash));
+      }
+    } catch (err) {
+      setNotiMessage(<span>Error sending transaction</span>);
+    } finally {
+      setNotiOpen(true);
+    }
+  };
+
+  const sendGsnTransaction = async (tx: ContractTransaction) => {
+    const realTxHash = await getActualTxHash(tx.hash);
+
+    setNotiMessage(NotiContent("Transaction sent", realTxHash));
+
+    try {
+      const receipt = await tx.wait();
+
+      if (receipt.status) {
+        setNotiMessage(NotiContent("Transaction success", realTxHash));
+      } else {
+        setNotiMessage(NotiContent("Transaction fail", realTxHash));
       }
     } catch (err) {
       setNotiMessage(<span>Error sending transaction</span>);

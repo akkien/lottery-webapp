@@ -3,13 +3,17 @@ import { useWeb3React } from "@web3-react/core";
 import { Funds__factory } from "../ethereum/typechain/factories/Funds__factory";
 import { injected } from "../ethereum/connector";
 import { FUND_ADDRESS, PAY_MASTER_ADDRESS } from "../ethereum/const";
-import { ethers } from "ethers";
+import { ethers, providers } from "ethers";
+import { RelayProvider, GSNConfig } from "@opengsn/provider";
+
+declare let window: { ethereum: any; location: any };
 
 export function useEagerConnect() {
   const { activate, active } = useWeb3React();
 
   const [tried, setTried] = useState(false);
 
+  
   useEffect(() => {
     injected.isAuthorized().then((isAuthorized: boolean) => {
       if (isAuthorized) {
@@ -100,6 +104,34 @@ export const getGsnProvider = async () => {
 
   return new ethers.providers.Web3Provider(gsnProvider);
 };
+
+// export const getGsnProvider = async () => {
+//   const web3Provider = window.ethereum;
+//   if (web3Provider == null) {
+//     throw new Error(
+//       'No "window.ethereum" found. do you have Metamask installed?'
+//     );
+//   }
+
+//   const PAY_MASTER_ADDRESS = "0x8A365103441883713d0780d8bb153dCfe2885DD7";
+
+//   const gsnConfig: Partial<GSNConfig> = {
+//     preferredRelays: ["http://188.166.211.138:8080/gsn1"],
+//     loggerConfiguration: { logLevel: "debug" },
+//     paymasterAddress: PAY_MASTER_ADDRESS,
+//     performDryRunViewRelayCall: false,
+//   };
+
+//   const gsnProvider = RelayProvider.newProvider({
+//     provider: web3Provider,
+//     config: gsnConfig,
+//   });
+//   await gsnProvider.init();
+
+//   return new ethers.providers.Web3Provider(
+//     gsnProvider as any as providers.ExternalProvider
+//   );
+// };
 
 export const getFunds = async () => {
   const provider = await getProvider();
