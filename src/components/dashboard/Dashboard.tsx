@@ -41,7 +41,7 @@ function Dashboard() {
   useEffect(() => {
     const func = async () => {
       if (claimSecret && claimNumber !== "") {
-        const fundsContract = await getFunds();
+        const fundsContract = getFunds();
 
         const hash = getHash(claimSecret, Number(claimNumber));
         const claimer = await fundsContract.claimers(hash);
@@ -57,7 +57,7 @@ function Dashboard() {
 
   const handleClickTopUp = async () => {
     try {
-      const fundsContract = await getFunds();
+      const fundsContract = getFunds();
 
       const amount = await fundsContract.amount();
 
@@ -76,7 +76,7 @@ function Dashboard() {
   const handleClickRegister = async () => {
     try {
       if (claimSecret && claimNumber !== "") {
-        const fundsContract = await getGsnFunds();
+        const fundsContract = getGsnFunds();
 
         const hash = getHash(claimSecret, Number(claimNumber));
         const tx = await fundsContract.register(hash);
@@ -93,7 +93,7 @@ function Dashboard() {
   const handleClickClaim = async () => {
     try {
       if (claimSecret && claimNumber !== "") {
-        const fundsContract = await getGsnFunds();
+        const fundsContract = getGsnFunds();
 
         const tx = await fundsContract.claim(claimSecret, claimNumber);
 

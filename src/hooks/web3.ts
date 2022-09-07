@@ -13,7 +13,6 @@ export function useEagerConnect() {
 
   const [tried, setTried] = useState(false);
 
-  
   useEffect(() => {
     injected.isAuthorized().then((isAuthorized: boolean) => {
       if (isAuthorized) {
@@ -99,49 +98,21 @@ export const getProvider = () => {
   return provider;
 };
 
-export const getGsnProvider = async () => {
-  const { ethereum, gsnProvider } = window as any;
+export const getGsnProvider = () => {
+  const { gsnProvider } = window as any;
 
   return new ethers.providers.Web3Provider(gsnProvider);
 };
 
-// export const getGsnProvider = async () => {
-//   const web3Provider = window.ethereum;
-//   if (web3Provider == null) {
-//     throw new Error(
-//       'No "window.ethereum" found. do you have Metamask installed?'
-//     );
-//   }
-
-//   const PAY_MASTER_ADDRESS = "0x8A365103441883713d0780d8bb153dCfe2885DD7";
-
-//   const gsnConfig: Partial<GSNConfig> = {
-//     preferredRelays: ["http://188.166.211.138:8080/gsn1"],
-//     loggerConfiguration: { logLevel: "debug" },
-//     paymasterAddress: PAY_MASTER_ADDRESS,
-//     performDryRunViewRelayCall: false,
-//   };
-
-//   const gsnProvider = RelayProvider.newProvider({
-//     provider: web3Provider,
-//     config: gsnConfig,
-//   });
-//   await gsnProvider.init();
-
-//   return new ethers.providers.Web3Provider(
-//     gsnProvider as any as providers.ExternalProvider
-//   );
-// };
-
-export const getFunds = async () => {
-  const provider = await getProvider();
+export const getFunds = () => {
+  const provider = getProvider();
   const signer = provider.getSigner();
   const contract = Funds__factory.connect(FUND_ADDRESS, signer);
   return contract;
 };
 
-export const getGsnFunds = async () => {
-  const provider = await getGsnProvider();
+export const getGsnFunds = () => {
+  const provider = getGsnProvider();
   const signer = provider.getSigner();
   const contract = Funds__factory.connect(FUND_ADDRESS, signer);
   return contract;

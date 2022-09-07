@@ -8,10 +8,12 @@ import theme from "./theme/default";
 import { ThemeProvider } from "@mui/material/styles";
 import { Web3ReactProvider } from "@web3-react/core";
 import { Web3Provider } from "@ethersproject/providers";
-
+import { initGsnProvider } from "./ethereum/gsnProvider";
 const root = ReactDOM.createRoot(
   document.getElementById("root") as HTMLElement
 );
+
+initGsnProvider();
 
 function getLibrary(provider: any): Web3Provider {
   const library = new Web3Provider(provider);

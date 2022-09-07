@@ -2,7 +2,6 @@ import React from "react";
 import ConnectButton from "./components/wallet/ConnectButton";
 import Alert from "@mui/material/Alert";
 import { useWeb3React, UnsupportedChainIdError } from "@web3-react/core";
-import { AbstractConnector } from "@web3-react/abstract-connector";
 import {
   NoEthereumProviderError,
   UserRejectedRequestError as UserRejectedRequestErrorInjected,
