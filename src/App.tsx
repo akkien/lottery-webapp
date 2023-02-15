@@ -24,7 +24,7 @@ function getErrorMessage(error: Error) {
 }
 
 function App() {
-  const { chainId, account, error } = useWeb3React();
+  const { account, error } = useWeb3React();
 
   return (
     <div className="App">

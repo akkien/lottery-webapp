@@ -4,7 +4,6 @@ import { Funds__factory } from "../ethereum/typechain/factories/Funds__factory";
 import { injected } from "../ethereum/connector";
 import { FUND_ADDRESS, PAY_MASTER_ADDRESS } from "../ethereum/const";
 import { ethers, providers } from "ethers";
-import { RelayProvider, GSNConfig } from "@opengsn/provider";
 
 declare let window: { ethereum: any; location: any };
 

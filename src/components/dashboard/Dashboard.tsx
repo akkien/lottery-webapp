@@ -11,7 +11,7 @@ import { ethers } from "ethers";
 import ChevronRightIcon from "@mui/icons-material/ChevronRight";
 
 import { useWeb3React } from "@web3-react/core";
-import { getFunds, getGsnFunds, getGsnProvider } from "../../hooks/web3";
+import { getFunds, getGsnFunds } from "../../hooks/web3";
 import { getActualTxHash } from "../../ethereum/helper";
 
 const abiCoder = new ethers.utils.AbiCoder();
@@ -57,11 +57,10 @@ function Dashboard() {
 
   const handleClickTopUp = async () => {
     try {
-      const fundsContract = getFunds();
-
-      const amount = await fundsContract.amount();
-
       if (topUpSecret && topUpNumber !== "") {
+        const fundsContract = getFunds();
+        const amount = await fundsContract.amount();
+
         const hash = getHash(topUpSecret, Number(topUpNumber));
 
         const tx = await fundsContract.topUp([hash], { value: amount });
