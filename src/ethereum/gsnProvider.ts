@@ -1,4 +1,4 @@
-import { RelayProvider, GSNConfig } from "@opengsn/provider"
+import { RelayProvider, GSNConfig, defaultEnvironment } from "@opengsn/provider"
 import { PAY_MASTER_ADDRESS, RELAYER_HOST } from "./const"
 
 declare let window: {
@@ -15,12 +15,18 @@ export const initGsnProvider = async () => {
     )
   }
 
+  const astraEnv = {
+    ...defaultEnvironment,
+    chainId: 11115, // TODO: set chain Id dynamically
+  }
+
   const gsnConfig: Partial<GSNConfig> = {
     preferredRelays: [RELAYER_HOST],
     loggerConfiguration: { logLevel: "debug" },
     paymasterAddress: PAY_MASTER_ADDRESS,
     performDryRunViewRelayCall: false,
     minMaxPriorityFeePerGas: 1000000000,
+    environment: astraEnv,
   }
 
   const gsnProvider = RelayProvider.newProvider({

@@ -1,160 +1,159 @@
-import react, { useEffect, useState } from "react";
+import react, { useEffect, useState } from "react"
 
-import Button from "@mui/material/Button";
-import OutlinedInput from "@mui/material/OutlinedInput";
-import Grid from "@mui/material/Grid";
-import Alert from "@mui/material/Alert";
-import NotiContent from "../notify-content/NotifyContent";
-import { ContractTransaction } from "@ethersproject/contracts";
-import Snackbar from "@mui/material/Snackbar";
-import { ethers } from "ethers";
-import ChevronRightIcon from "@mui/icons-material/ChevronRight";
+import Button from "@mui/material/Button"
+import OutlinedInput from "@mui/material/OutlinedInput"
+import Grid from "@mui/material/Grid"
+import Alert from "@mui/material/Alert"
+import NotiContent from "../notify-content/NotifyContent"
+import { ContractTransaction } from "@ethersproject/contracts"
+import Snackbar from "@mui/material/Snackbar"
+import { ethers } from "ethers"
+import ChevronRightIcon from "@mui/icons-material/ChevronRight"
 
-import { useWeb3React } from "@web3-react/core";
-import { getFunds, getGsnFunds } from "../../hooks/web3";
-import { getActualTxHash } from "../../ethereum/helper";
+import { useWeb3React } from "@web3-react/core"
+import { getFunds, getGsnFunds } from "../../hooks/web3"
+import { getActualTxHash } from "../../ethereum/helper"
 
-const abiCoder = new ethers.utils.AbiCoder();
+const abiCoder = new ethers.utils.AbiCoder()
 
 const getHash = (str: string, num: number) => {
-  return ethers.utils.keccak256(
-    abiCoder.encode(["string", "uint"], [str, num])
-  );
-};
+  return ethers.utils.keccak256(abiCoder.encode(["string", "uint"], [str, num]))
+}
 
 function Dashboard() {
-  const { account } = useWeb3React();
+  const { account } = useWeb3React()
 
   // Input
-  const [isRegistered, setIsRegistered] = useState(false);
-  const [isClaimed, setIsClaimed] = useState(false);
-  const [topUpSecret, setTopUpSecret] = useState("");
-  const [topUpNumber, setTopUpNumber] = useState<number | string>("");
-  const [claimSecret, setClaimSecret] = useState("");
-  const [claimNumber, setClaimNumber] = useState<number | string>("");
+  const [isRegistered, setIsRegistered] = useState(false)
+  const [isClaimed, setIsClaimed] = useState(false)
+  const [topUpSecret, setTopUpSecret] = useState("")
+  const [topUpNumber, setTopUpNumber] = useState<number | string>("")
+  const [claimSecret, setClaimSecret] = useState("")
+  const [claimNumber, setClaimNumber] = useState<number | string>("")
 
-  const [notiMessage, setNotiMessage] = useState<React.ReactNode>(null);
-  const [notiOpen, setNotiOpen] = useState(false);
+  const [notiMessage, setNotiMessage] = useState<React.ReactNode>(null)
+  const [notiOpen, setNotiOpen] = useState(false)
 
-  const [sending, setSending] = useState(false);
+  const [sending, setSending] = useState(false)
 
   useEffect(() => {
     const func = async () => {
       if (claimSecret && claimNumber !== "") {
-        const fundsContract = getFunds();
+        const fundsContract = getFunds()
 
-        const hash = getHash(claimSecret, Number(claimNumber));
-        const claimer = await fundsContract.claimers(hash);
+        const hash = getHash(claimSecret, Number(claimNumber))
+        const claimer = await fundsContract.claimers(hash)
 
-        setIsRegistered(claimer !== ethers.constants.AddressZero);
+        setIsRegistered(claimer !== ethers.constants.AddressZero)
 
-        const isClaimed = await fundsContract.isClaimed(hash);
-        setIsClaimed(isClaimed);
+        const isClaimed = await fundsContract.isClaimed(hash)
+        setIsClaimed(isClaimed)
       }
-    };
-    func();
-  }, [claimNumber, claimSecret]);
+    }
+    func()
+  }, [claimNumber, claimSecret])
 
   const handleClickTopUp = async () => {
     try {
       if (topUpSecret && topUpNumber !== "") {
-        const fundsContract = getFunds();
-        const amount = await fundsContract.amount();
+        const fundsContract = getFunds()
+        const amount = await fundsContract.amount()
 
-        const hash = getHash(topUpSecret, Number(topUpNumber));
+        const hash = getHash(topUpSecret, Number(topUpNumber))
 
-        const tx = await fundsContract.topUp([hash], { value: amount });
-        await sendTransaction(tx);
+        const tx = await fundsContract.topUp([hash], { value: amount })
+        await sendTransaction(tx)
       }
     } catch (error) {
     } finally {
-      setSending(false);
+      setSending(false)
     }
-  };
+  }
 
   const handleClickRegister = async () => {
     try {
       if (claimSecret && claimNumber !== "") {
-        const fundsContract = getGsnFunds();
+        const fundsContract = getGsnFunds()
 
-        const hash = getHash(claimSecret, Number(claimNumber));
-        const tx = await fundsContract.register(hash);
+        const hash = getHash(claimSecret, Number(claimNumber))
+        const tx = await fundsContract.register(hash)
 
-        await sendGsnTransaction(tx);
-        setIsRegistered(true);
+        await sendGsnTransaction(tx)
+        setIsRegistered(true)
       }
     } catch (error) {
     } finally {
-      setSending(false);
+      setSending(false)
     }
-  };
+  }
 
   const handleClickClaim = async () => {
     try {
       if (claimSecret && claimNumber !== "") {
-        const fundsContract = getGsnFunds();
+        const fundsContract = getGsnFunds()
 
-        const tx = await fundsContract.claim(claimSecret, claimNumber);
+        const tx = await fundsContract.claim(claimSecret, Number(claimNumber))
 
-        await sendGsnTransaction(tx);
-        setIsClaimed(true);
+        await sendGsnTransaction(tx)
+        setIsClaimed(true)
       }
     } catch (error) {
+      console.error("error", error)
     } finally {
-      setSending(false);
+      setSending(false)
     }
-  };
+  }
 
   const handleCloseNoti = (
     event?: React.SyntheticEvent | Event,
     reason?: string
   ) => {
     if (reason === "clickaway") {
-      return;
+      return
     }
 
-    setNotiOpen(false);
-  };
+    setNotiOpen(false)
+  }
 
   const sendTransaction = async (tx: ContractTransaction) => {
-    setNotiMessage(NotiContent("Transaction sent", tx.hash));
+    setNotiMessage(NotiContent("Transaction sent", tx.hash))
 
     try {
-      const receipt = await tx.wait();
+      const receipt = await tx.wait()
 
       if (receipt.status) {
-        setNotiMessage(NotiContent("Transaction success", tx.hash));
+        setNotiMessage(NotiContent("Transaction success", tx.hash))
       } else {
-        setNotiMessage(NotiContent("Transaction fail", tx.hash));
+        setNotiMessage(NotiContent("Transaction fail", tx.hash))
       }
     } catch (err) {
-      setNotiMessage(<span>Error sending transaction</span>);
+      setNotiMessage(<span>Error sending transaction</span>)
     } finally {
-      setNotiOpen(true);
+      setNotiOpen(true)
     }
-  };
+  }
 
   const sendGsnTransaction = async (tx: ContractTransaction) => {
-    const realTxHash = await getActualTxHash(tx.hash);
+    const realTxHash = await getActualTxHash(tx.hash)
 
-    setNotiMessage(NotiContent("Transaction sent", realTxHash));
+    setNotiMessage(NotiContent("Transaction sent", realTxHash))
 
     try {
-      const receipt = await tx.wait();
+      const receipt = await tx.wait()
 
       if (receipt.status) {
-        setNotiMessage(NotiContent("Transaction success", realTxHash));
+        setNotiMessage(NotiContent("Transaction success", realTxHash))
       } else {
-        setNotiMessage(NotiContent("Transaction fail", realTxHash));
+        setNotiMessage(NotiContent("Transaction fail", realTxHash))
       }
     } catch (err) {
-      setNotiMessage(<span>Error sending transaction</span>);
+      setNotiMessage(<span>Error sending transaction</span>)
     } finally {
-      setNotiOpen(true);
+      setNotiOpen(true)
     }
-  };
+  }
 
-  if (!account) return null;
+  if (!account) return null
 
   return (
     <div>
@@ -166,7 +165,7 @@ function Dashboard() {
               value={topUpSecret}
               fullWidth
               onChange={(e) => {
-                setTopUpSecret(e.target.value);
+                setTopUpSecret(e.target.value)
               }}
               style={{ marginBottom: 5 }}
             />
@@ -180,9 +179,9 @@ function Dashboard() {
               style={{ marginBottom: 5 }}
               onChange={(e) => {
                 if (e.target.value === "") {
-                  setTopUpNumber(e.target.value);
+                  setTopUpNumber(e.target.value)
                 } else {
-                  setTopUpNumber(Number(e.target.value));
+                  setTopUpNumber(Number(e.target.value))
                 }
               }}
             />
@@ -202,7 +201,7 @@ function Dashboard() {
               value={claimSecret}
               fullWidth
               onChange={(e) => {
-                setClaimSecret(e.target.value);
+                setClaimSecret(e.target.value)
               }}
               style={{ marginBottom: 5 }}
             />
@@ -216,9 +215,9 @@ function Dashboard() {
               style={{ marginBottom: 5 }}
               onChange={(e) => {
                 if (e.target.value === "") {
-                  setClaimNumber(e.target.value);
+                  setClaimNumber(e.target.value)
                 } else {
-                  setClaimNumber(Number(e.target.value));
+                  setClaimNumber(Number(e.target.value))
                 }
               }}
             />
@@ -271,7 +270,7 @@ function Dashboard() {
         </Alert>
       </Snackbar>
     </div>
-  );
+  )
 }
 
-export default Dashboard;
+export default Dashboard
